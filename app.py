@@ -1,4 +1,8 @@
 from flask import Flask, jsonify, request, render_template
+
+
+
+from flask import Flask, jsonify, request, render_template
 from database import inserir_leitura_sensor, buscar_leituras_sensor
 
 app = Flask(__name__)
