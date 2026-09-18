@@ -1,7 +1,12 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from database import inserir_leitura_sensor, buscar_leituras_sensor
 
 app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 
 @app.route('/api/sensor', methods=['POST'])
 def salvar_dados_sensor():
