@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-URL_BANCO_DADOS = os.getenv("DATABASE_URL").strip()
+URL_BANCO_DADOS = os.getenv("DATABASE_URL")
 
 def obter_conexao_bd():
     """Cria e retorna a conexão ativa com o banco de dados Neon."""
