@@ -1,57 +1,64 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Cancela IoT</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Monitor de distancia</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Painel de Monitoramento - Sensor IoT</h1>
-            <p>Acompanhamento em tempo real da cancela inteligente</p>
-        </header>
+	<main class="dashboard">
+		<header class="page-header">
+			<div>
+				<p class="eyebrow">SENSOR MQTT</p>
+				<h1>Monitor de distancia</h1>
+				<p class="subtitle">Leituras recentes recebidas pelo sistema.</p>
+			</div>
+			<button id="refresh-button" class="refresh-button" type="button">Atualizar</button>
+		</header>
 
-        <!-- Card de Status Atual -->
-        <section class="status-card" id="status-atual">
-            <h2>Status Atual</h2>
-            <div class="status-info">
-                <div class="info-box">
-                    <span class="label">Distância:</span>
-                    <span class="value" id="distancia-atual">-- cm</span>
-                </div>
-                <div class="info-box">
-                    <span class="label">Estado:</span>
-                    <span class="badge" id="estado-atual">Aguardando...</span>
-                </div>
-            </div>
-            <p class="ultima-atualizacao">Última leitura: <span id="hora-atualizacao">--:--:--</span></p>
-        </section>
+		<section class="summary" aria-label="Resumo das leituras">
+			<article class="summary-item">
+				<span>Total exibido</span>
+				<strong id="reading-count">-</strong>
+			</article>
+			<article class="summary-item">
+				<span>Ultima distancia</span>
+				<strong id="latest-distance">-</strong>
+			</article>
+			<article class="summary-item">
+				<span>Status</span>
+				<strong id="connection-status" class="status status-loading">Carregando</strong>
+			</article>
+		</section>
 
-        <!-- Tabela de Histórico -->
-        <section class="historico">
-            <h2>Histórico Recente</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data / Hora</th>
-                            <th>Dispositivo</th>
-                            <th>Distância</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-corpo">
-                        <tr>
-                            <td colspan="4" class="text-center">Carregando dados...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </div>
+		<section class="readings-panel" aria-labelledby="readings-title">
+			<div class="panel-header">
+				<div>
+					<p class="eyebrow">HISTORICO</p>
+					<h2 id="readings-title">Ultimas leituras</h2>
+				</div>
+				<span id="last-updated" class="last-updated">Aguardando dados</span>
+			</div>
 
-    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+			<p id="feedback" class="feedback" role="status"></p>
+			<div class="table-wrapper">
+				<table>
+					<thead>
+						<tr>
+							<th>Dispositivo</th>
+							<th>Distancia</th>
+							<th>Detectado</th>
+							<th>Data e hora</th>
+						</tr>
+					</thead>
+					<tbody id="readings-body">
+						<tr><td colspan="4" class="empty-state">Carregando leituras...</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</main>
+	<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
