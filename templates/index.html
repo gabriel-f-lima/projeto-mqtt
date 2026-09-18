@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Cancela IoT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Painel de Monitoramento - Sensor IoT</h1>
+            <p>Acompanhamento em tempo real da cancela inteligente</p>
+        </header>
+
+        <!-- Card de Status Atual -->
+        <section class="status-card" id="status-atual">
+            <h2>Status Atual</h2>
+            <div class="status-info">
+                <div class="info-box">
+                    <span class="label">Distância:</span>
+                    <span class="value" id="distancia-atual">-- cm</span>
+                </div>
+                <div class="info-box">
+                    <span class="label">Estado:</span>
+                    <span class="badge" id="estado-atual">Aguardando...</span>
+                </div>
+            </div>
+            <p class="ultima-atualizacao">Última leitura: <span id="hora-atualizacao">--:--:--</span></p>
+        </section>
+
+        <!-- Tabela de Histórico -->
+        <section class="historico">
+            <h2>Histórico Recente</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data / Hora</th>
+                            <th>Dispositivo</th>
+                            <th>Distância</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo">
+                        <tr>
+                            <td colspan="4" class="text-center">Carregando dados...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+</html>
