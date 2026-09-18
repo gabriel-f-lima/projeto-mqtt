@@ -1,70 +1,88 @@
-// Função para formatar a data (Ex: 18/09/2026 14:30:00)
-function formatarData(dataString) {
-    const data = new Date(dataString);
-    return data.toLocaleString('pt-BR');
+const readingsBody = document.querySelector('#readings-body');
+const readingCount = document.querySelector('#reading-count');
+const latestDistance = document.querySelector('#latest-distance');
+const connectionStatus = document.querySelector('#connection-status');
+const lastUpdated = document.querySelector('#last-updated');
+const feedback = document.querySelector('#feedback');
+const refreshButton = document.querySelector('#refresh-button');
+
+function escapeHtml(value) {
+	return String(value ?? '')
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;')
+		.replaceAll('"', '&quot;')
+		.replaceAll("'", '&#039;');
 }
 
-// Função principal para buscar dados da API
-async function atualizarDashboard() {
-    try {
-        const resposta = await fetch('/api/sensor');
-        if (!resposta.ok) throw new Error('Erro ao buscar dados');
-        
-        const leituras = await resposta.json();
-        
-        if (leituras.length > 0) {
-            // 1. Atualizar o Card de Status Atual (pegando o primeiro item da lista)
-            const maisRecente = leituras[0];
-            
-            document.getElementById('distancia-atual').innerText = `${maisRecente.distance_cm} cm`;
-            
-            const badgeEstado = document.getElementById('estado-atual');
-            if (maisRecente.is_detected) {
-                badgeEstado.innerText = 'Detectado (Cancela Aberta)';
-                badgeEstado.className = 'badge detectado';
-            } else {
-                badgeEstado.innerText = 'Livre (Cancela Fechada)';
-                badgeEstado.className = 'badge livre';
-            }
-
-            document.getElementById('hora-atualizacao').innerText = formatarData(maisRecente.measured_at);
-
-            // 2. Atualizar a Tabela de Histórico
-            const corpoTabela = document.getElementById('tabela-corpo');
-            corpoTabela.innerHTML = ''; // Limpa a tabela atual
-
-            leituras.forEach(leitura => {
-                const tr = document.createElement('tr');
-                
-                const tdData = document.createElement('td');
-                tdData.innerText = formatarData(leitura.measured_at);
-                
-                const tdDispositivo = document.createElement('td');
-                tdDispositivo.innerText = leitura.device_id;
-                
-                const tdDistancia = document.createElement('td');
-                tdDistancia.innerText = `${leitura.distance_cm} cm`;
-                
-                const tdStatus = document.createElement('td');
-                tdStatus.innerText = leitura.is_detected ? 'Detectado' : 'Livre';
-                tdStatus.style.color = leitura.is_detected ? '#e74c3c' : '#2ecc71';
-                tdStatus.style.fontWeight = 'bold';
-
-                tr.appendChild(tdData);
-                tr.appendChild(tdDispositivo);
-                tr.appendChild(tdDistancia);
-                tr.appendChild(tdStatus);
-                
-                corpoTabela.appendChild(tr);
-            });
-        }
-    } catch (erro) {
-        console.error('Erro ao atualizar dashboard:', erro);
-    }
+function formatDistance(value) {
+	const distance = Number(value);
+	return Number.isFinite(distance) ? `${distance.toFixed(1)} cm` : '-';
 }
 
-// Atualiza imediatamente ao carregar a página
-atualizarDashboard();
+function formatDate(value) {
+	if (!value) return '-';
 
-// Configura para atualizar automaticamente a cada 3 segundos (3000 ms)
-setInterval(atualizarDashboard, 3000);
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return escapeHtml(value);
+
+	return date.toLocaleString('pt-BR', {
+		dateStyle: 'short',
+		timeStyle: 'medium'
+	});
+}
+
+function setStatus(label, statusClass) {
+	connectionStatus.textContent = label;
+	connectionStatus.className = `status ${statusClass}`;
+}
+
+function renderReadings(readings) {
+	readingCount.textContent = readings.length;
+
+	if (readings.length === 0) {
+		latestDistance.textContent = '-';
+		readingsBody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhuma leitura encontrada.</td></tr>';
+		return;
+	}
+
+	latestDistance.textContent = formatDistance(readings[0].distance_cm);
+	readingsBody.innerHTML = readings.map((reading) => `
+		<tr>
+			<td><strong>${escapeHtml(reading.device_id || 'Desconhecido')}</strong></td>
+			<td>${formatDistance(reading.distance_cm)}</td>
+			<td><span class="badge ${reading.is_detected ? 'badge-alert' : 'badge-normal'}">
+				${reading.is_detected ? 'Sim' : 'Nao'}
+			</span></td>
+			<td>${formatDate(reading.measured_at)}</td>
+		</tr>
+	`).join('');
+}
+
+async function loadReadings() {
+	refreshButton.disabled = true;
+	feedback.textContent = '';
+
+	try {
+		const response = await fetch('/api/sensor', { headers: { Accept: 'application/json' } });
+		const data = await response.json();
+
+		if (!response.ok || !Array.isArray(data)) {
+			throw new Error(data.erro || 'A API retornou uma resposta invalida.');
+		}
+
+		renderReadings(data);
+		setStatus('Conectado', 'status-online');
+		lastUpdated.textContent = `Atualizado as ${new Date().toLocaleTimeString('pt-BR')}`;
+	} catch (error) {
+		setStatus('Erro', 'status-error');
+		feedback.textContent = `Nao foi possivel carregar os dados: ${error.message}`;
+		readingsBody.innerHTML = '<tr><td colspan="4" class="empty-state">Verifique se o Flask e o banco estao disponiveis.</td></tr>';
+	} finally {
+		refreshButton.disabled = false;
+	}
+}
+
+refreshButton.addEventListener('click', loadReadings);
+loadReadings();
+setInterval(loadReadings, 10000);
